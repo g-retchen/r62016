@@ -1,0 +1,108 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+//  Set the delay between fresh samples
+#define BNO055_SAMPLERATE_DELAY_MS (500)
+
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
+
+//  Display sensor calibration status
+void displayCalStatus(void)
+{
+  /* Get the four calibration values (0..3) */
+  /* Any sensor data reporting 0 should be ignored, */
+  /* 3 means 'fully calibrated" */
+  uint8_t system, gyro, accel, mag;
+  system = gyro = accel = mag = 0;
+  bno.getCalibration(&system, &gyro, &accel, &mag);
+  
+  Serial.print(" G:");
+  Serial.print(gyro, DEC);
+}
+
+//  Arduino setup function (automatically called at startup)
+void setup(void)
+{
+  Serial.begin(9600);
+
+//  Initialise the sensor
+  if (!bno.begin())
+  {
+    //There was a problem detecting the BNO055 ... check your connections
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    while (1);
+  }
+
+  delay(1000);
+
+  bno.setExtCrystalUse(true);
+}
+
+//  My custom functions
+int get_pre_heading(){
+  sensors_event_t event;
+  bno.getEvent(&event);
+  int pre_heading = (event.orientation.x, 0);
+  return pre_heading
+}
+
+float get_post_heading(){
+  sensors_event_t event;
+  bno.getEvent(&event);
+  int post_heading = (event.orientation.x, 0);
+  return post_heading
+}
+
+int calc_heading_delta(int pre_heading,int post_heading){
+  if(pre_heading > 180){
+    pre_heading = pre_heading - 360;
+    int heading_delta = pre_heading - post_heading;
+  }
+  if(post_heading > 180){
+    post_heading = post_heading - 360;
+    heading_delta = pre_heading - post_heading;
+  }
+  else{
+    heading_delta = pre_heading - post_heading;
+  }
+  return heading_delta
+}
+
+
+//  Arduino loop function, called once 'setup' is complete (your own code should go here)
+void loop(void)
+{
+  //  Get a new sensor event
+  sensors_event_t event;
+  bno.getEvent(&event);
+
+  //  Display the floating point data
+  Serial.print("X: ");
+  //Serial.print(event.orientation.x, 4);
+  Serial.print(event.orientation.x, 0);
+
+  //  Optional: Display calibration status
+  displayCalStatus();
+
+  //  New line for the next sample
+  Serial.println("");
+
+  //  Wait the specified delay before requesting next data
+  delay(BNO055_SAMPLERATE_DELAY_MS);
+
+  // my code starts here
+  if(event.orientation.x >= 70 && event.orientation.x <= 100){
+    Serial.print("RIGHT TURN");
+    delay(BNO055_SAMPLERATE_DELAY_MS);
+    delay(BNO055_SAMPLERATE_DELAY_MS);
+    setup();
+  }
+  if(event.orientation.x >= 260 && event.orientation.x <= 280){
+    Serial.print("LEFT TURN");
+    delay(BNO055_SAMPLERATE_DELAY_MS);
+    delay(BNO055_SAMPLERATE_DELAY_MS);
+    setup();
+  }
+}
