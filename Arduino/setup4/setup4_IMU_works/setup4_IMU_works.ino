@@ -1,9 +1,16 @@
+#include <EEPROM.h>
+
 #include <FastLED.h>
 #include <Arduino.h>
 #include <SharpIR.h>
 //#include <string>
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
 
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 
 //initialize LED Matrix Display
@@ -34,6 +41,11 @@ const int latchPin = 2; // pin 12
 const int dataPin = 3; // pin 14
 const int clockPin = 4; // pin 11
 
+// IMU
+int updated_heading;
+int heading_delta;
+char fwd;
+char turn;
 
 
 //function declarations
@@ -43,37 +55,59 @@ int convertChar2Int(char);
 char convertInt2Char(int);
 void restartLEDs(void);
 void write7Seg(char);
-String IMUTurn(void);
 
+//IMU function
+int get_updated_heading(void);
 
-//void ledValues(char *typeOfNode);
-//int** convert1Dto2d(int *1dArray);
+String number2String(int);
+
 
 //initializers for serial communication
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
-int previousHeader;
+int Heading;
+
+
 
 
 void setup() {
-    Serial.begin(9600);
-    delay( 3000 ); // power-up safety delay
-
-    //initialize LED object
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.setBrightness(  96 );
+  Serial.begin(9600);
+  delay( 3000 ); // power-up safety delay
+  
+  //initialize LED object
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  FastLED.setBrightness(  96 );
   //pinmodes for 7 segment LED  
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   inputString.reserve(200);
-  previousHeader = 0;int sensorValue = 0;  // variable to store the value coming from the sensor
-    leds[ledSpot[1]] = CRGB::Yellow;  // turn yellow on home square at init.
+  Heading = 0;int sensorValue = 0;  // variable to store the value coming from the sensor
+  leds[ledSpot[1]] = CRGB::Yellow;  // turn yellow on home square at init.
   FastLED.show();
-}
+  // bno055  section testing
+  if (!bno.begin())
+  {
+    Serial.print("Oops,  no IMU");
+    while(1);
+  }
+  
+  delay(1000);
+  bno.setExtCrystalUse(true);
+  }
 
 void loop()
 {
+  //int updated_heading;
+  //int heading_delta;
+  //char fwd;
+  //char turn;
+  while(1){
+    Serial.print(number2String(544));
+    Serial.print(number2String(35));
+    Serial.print(number2String(2));
+    delay(1000);
+  }
   
   
     // print the string when a newline arrives:
@@ -110,24 +144,29 @@ void loop()
                Serial.println(value2Send);
                break;
     case 'c':  ledValues(number, gridType);   //updates the matrix
-
+              Serial.flush();
               break;
     case 'e':                         //used for testing the matrix. remove later
               //Serial.print(typeOfNode[1]);
               //Serial.print(typeOfNode[2]);
               Serial.flush();
               break;
-    case 'd': write7Seg(sevSegNumber);            
+    case 'd': write7Seg(sevSegNumber);
+              //Serial.print(ledNumber);
+              Serial.flush();              
               break;
     case 'f': //restartLEDs();
               Serial.flush();
               break;
-    case 'g': previousHeader = headerNumber;    //change so that all of the header values come from the library
-              break;
-    case 'h': value2Send = IMUTurn();        //code for comparing headers
-              value2Send += '\n';
-              Serial.println(value2Send);
-              //Serial.flush();
+    case 'g' : 
+              updated_heading = get_updated_heading();
+              //heading_delta = get_heading_delta(updated_heading);
+              updated_heading += '\n';
+              //fwd = move_fwd(heading_delta);
+              Serial.print("heading data section     ");
+              Serial.println(updated_heading);
+              //Serial.write(fwd);
+              Serial.flush();
               break;
     default:
               Serial.write('z');
@@ -227,52 +266,64 @@ int convertChar2Int(char digit){
 
 }
 
+String number2String(int number){
+
+  String send = "";
+  
+  send += convertInt2Char(number / 100);
+  send += convertInt2Char((number % 100) / 10);
+  send += convertInt2Char(number % 10);
+
+  return send;
+}
+
 
 //used with the ledValues function
 //takes a number in the form of a character
 //converts the character number to an integer number
 //returns the integer number
 char convertInt2Char(int digit){
-  char digitAsChar = 0;
+  char digitAsInt = 0;
   
   switch(digit){
     case 0:
-      digitAsChar = '0';
+      digitAsInt = '0';
       break;
     case 1:
-      digitAsChar = '1';
+      digitAsInt = '1';
       break;
     case 2:
-      digitAsChar = '2';
+      digitAsInt = '2';
       break;
     case 3:
-      digitAsChar = '3';
+      digitAsInt = '3';
       break;
     case 4:
-      digitAsChar = '4';
+      digitAsInt = '4';
       break;
     case 5:
-      digitAsChar = '5';
+      digitAsInt = '5';
       break;
     case 6:
-      digitAsChar = '6';
+      digitAsInt = '6';
       break;
     case 7:
-      digitAsChar = '7';
+      digitAsInt = '7';
       break;
     case 8:
-      digitAsChar = '8';
+      digitAsInt = '8';
       break;
     case 9:
-      digitAsChar = '9';
+      digitAsInt = '9';
       break;  
     default:
-      digitAsChar = '0';    
+      digitAsInt = '0';    
         
   }
-  return digitAsChar;
+  return digitAsInt;
 
 }
+
 
 //write values to the 7 segment display
 void write7Seg(char number){
@@ -340,7 +391,7 @@ void write7Seg(char number){
 //I think that this sensor only detects within 10 t0 80 CM
 //should be able to check 3 blocks
 char objInFront(SharpIR sharp){
-  int dis = abs(sharp.distance());
+  int dis = sharp.distance();
   
   if(dis > 40)
     return '1';  //there is no obstacle in front of sensor
@@ -366,28 +417,58 @@ void serialEvent() {
 }
 
 
-String IMUTurn(void){
-  String returnHeader = "";
-  
-  int header;
-  //put code for get header here
-  
-   returnHeader += convertInt2Char(header / 100);
-   returnHeader += convertInt2Char((header  % 100) / 10);
-   returnHeader += convertInt2Char(header  % 10);
-   
-  
-  
-  /*if (newHeader > previousHeader){
-    previousHeader = newHeader;
-    return '0';
-  }
-  else{
-    previousHeader = newHeader;
-    return '1';
-  }
-  */
-  return returnHeader;
+// get the updated heading reading
+int get_updated_heading() {
+  int updated_heading;
+  sensors_event_t event;
+  bno.getEvent(&event);
+  updated_heading = event.orientation.x;
+  return updated_heading;
 }
+
+// calculate the heading delta
+int get_heading_delta(int updated_heading) {
+  int heading_delta;
+  if (updated_heading > 180) {
+    updated_heading = updated_heading - 360;
+    heading_delta = updated_heading;
+  }
+  else {
+    heading_delta = updated_heading;
+  }
+  return heading_delta;
+}
+
+/*
+// move forward with l/r compensation
+char move_fwd(int heading_delta) {
+  char left = 'l';
+  char right = 'r';
+  char forward = 'n';
+  if (heading_delta > 5 && heading_delta < 180) {
+    // send command to turn left to correct
+    return left;
+  }
+  if (heading_delta < -5 && heading_delta > -180) {
+    // send command to turn right to correct
+    return right;
+  }
+  else {
+    // send command to continue forward
+    return forward;
+  }
+}
+
+// turn l/r, indicate when done
+char move_turn(int heading_delta) {
+  char continue_turn = 'g';
+  char end_turn = 'e';
+  if (abs(heading_delta) < 90) {
+    return continue_turn;
+  }
+  return end_turn;
+}
+*/
+
 
 

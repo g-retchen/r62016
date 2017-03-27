@@ -8,34 +8,83 @@ import rotationMotorTest
 import RPi.GPIO as GPIO
 import serial
 import time
+from time import sleep
+import subprocess
 import os
-
 import math
 
 #motor control
 from BrickPi import *  # import BrickPi.py file to use BrickPi operations
 from MultiMotorDriving import *  # So can do precision motor rotations
 
-
 #initialize motor
 left_motor = PORT_B
 right_motor = PORT_A
 motor = rotationMotorTest.MotorControls(left_motor, right_motor)
 
+#initialize arm lift servo motor
+#Lift_motor = PORT_C
+#Liftmotor = rotationMotorTest.MotorControls(Lift_motor)
+
 #initialize serial communication
 #ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 2)   #use with redboard
 ser = serial.Serial('/dev/ttyACM0',9600, timeout = 2)  #use with arduino uno
 
+
 #function for shutdown pi when red button is pressed
-def Shutdown(channel):
-  # time.sleep(4)
-   GPIO.cleanup()
-   os.system("sudo shutdown -h now")  #shuts down entire operating system
+def system_action(STOPBUTTON):
+   print("Stop Button press detected.")
+   button_press_timer=0
+   while True:
+      if (GPIO.input(STOPBUTTON) == False) : # while button is still pressed down
+          button_press_timer += 1 # keep counting until button is released
+      else: # button is released, figure out for how long
+          if (button_press_timer > 7) : # pressed for > 7 seconds
+              print ("long press > 7 : ", button_press_timer)
+              self.Shutdown()
+          elif (button_press_timer > 3) : # press for > 3 < 5 seconds
+              print ("short press > 3 < 5 : ", button_press_timer)
+              self.Reboot()
+          elif (button_press_timer > 1) : # press for > 1 < 3 seconds
+              print ("short press > 1 < 3 : ", button_press_timer)
+              self.HaltRobot()
+          button_press_timer = 0
+      sleep(1)
 
 #setup interrupts for stop push button
+STOPBUTTON = 04
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(04, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(04, GPIO.FALLING, callback = Shutdown, bouncetime = 2000)
+GPIO.add_event_detect(STOPBUTTON, GPIO.FALLING, bouncetime = 400)
+#GPIO.add_event_detect(04, GPIO.FALLING, callback = STOPBUTTON, bouncetime = 2000)
+
+
+#GPIO.add_event_detect(STOPBUTTON, GPIO.FALLING, callback=system_action, bouncetime=200)
+# setup the thread, detect a falling edge on channel 04 and debounce it with 200mSec
+
+def HaltRobot(channel):
+  # time.sleep(4)
+  print ("HaltRobot button test confirmed")
+  #motor.move_bot(action_to_take)  # Send command to move the bot
+  # os.system.KeyboardInterrupt  #shuts down entire operating system
+
+  # code to send stop to motors here
+  # code to restart main program here,
+  # return to wait for green button, or resume
+
+def Shutdown(channel):
+  # time.sleep(4)
+  print ("Shutdown button test confirmed")
+  # code to send stop to motors here
+  # GPIO.cleanup()
+  # os.system("sudo shutdown -h now")  #shuts down entire operating system
+
+def Reboot(channel):
+  # time.sleep(4)
+  print ("Reboot button test confirmed")
+  # code to send stop to motors here
+  # GPIO.cleanup()
+  # os.system("sudo reboot")  #shuts down entire operating system
 
 
 #code for direction to go
@@ -335,10 +384,10 @@ def calc_motor_degree():
       
 
 def main():
-   number_of_nodes = 50
-   course_nodes = grid.Grid(number_of_nodes)
+#   number_of_nodes = 50
+#   course_nodes = grid.Grid(number_of_nodes)
    
-   time.sleep(4) #need this always before code begins! 4 seems to work okay
+#   time.sleep(4) #need this always before code begins! 4 seems to work okay
 
 
 #tester. delete
@@ -356,9 +405,9 @@ def main():
 
        #testing
    #while stillTurning != 'g':
-  # while 1:
+   #while 1:
      # motor.movement(1,-1,100,100) #left turn
-   #   print (sendAndReceiveValue('g', 'z', 'z'))
+    #  print (sendAndReceiveValue('g', 'z', 'z'))
     #  time.sleep(1)
       
      #call header comparison code
@@ -366,15 +415,19 @@ def main():
     #tester code
    #turn('l')
 
-   course_nodes.initialize()
-   PerimeterSearch(course_nodes)
-   GridSearch(course_nodes)
+   #course_nodes.initialize()
+  # PerimeterSearch(course_nodes)
+  # GridSearch(course_nodes)
 #
 #   completeGrid()
 #   time.sleep(.01)
-   print ("done")
-   while True:
-      time.sleep(.01)
+#   print ("done")
+#   while True:
+#      time.sleep(.01)
 
-if __name__ == "__main__":
-    main()
+   if __name__ == "__main__":
+      try:
+         main()
+      except KeyboardInterrupt:
+         GPIO.cleanup()   # clean up GPIO on CTRL+C exit.
+   GPIO.cleanup()

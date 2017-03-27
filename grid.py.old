@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# Maintains details of all nodes on the grid.
 
 import math
 
@@ -50,9 +51,10 @@ class Grid(object):
     #initialize grid values
     def initialize(self):
         self.orientation = 'e'
-        self[6].before_corner = True
-        self[42].before_corner = True
-        self[44].before_corner = True
+        self[1].is_corner = True
+        self[7].is_corner = True
+        self[42].is_corner = True
+        self[49].is_corner = True
         for i in range(self.number_of_nodes + 1):
             #initialize row and column numbers
             self.grid[i].col_number = (i - 1)%7 + 1
@@ -98,6 +100,7 @@ class Grid(object):
         else:
             turn_type = 0   #go straight 1
             self.current_node = self.current_node + self.increment_node()
+        print ("current node:", self.current_node, " Turn type", turn_type )
         return turn_type
 
 #increments a node. 
@@ -178,6 +181,7 @@ class Grid(object):
         else:
             self.current_node += self.increment_node()
             turnType = 0
+        print ("current node:", self.current_node, " Turn type", turnType )
         return turnType
 
 
@@ -194,49 +198,29 @@ class Grid(object):
     # 10 turn right, go straight
 
     #code to avoid an obstacle. Needs to be tested. Robot will be alerted when there is an object in front of it. Turns away from object. Checks all sides for another object 
-    def obstacleAvoidance(self, rowType, startRow, sensorValues, startNode):
+    def obstacleAvoidance(self, startRow, sensorValues, startNode):
        rightObstacle = sensorValues[1]
        middleObstacle = sensorValues[2]
        leftObstacle = sensorValues[3]
     #   direction = 'z'#get rid of this code later!
        
-       if rowType == 'e':
-            if rightObstacle == '1':    #no obstacle is to the right of the robot. Turn right and go straight
-                self.change_orientation('r')
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 10               
-            elif middleObstacle == '1':#no obstacle is in front of the robot. go straight
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 0                
-            elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
-                self.change_orientation('l') 
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 1
-            else:
-                print ("not quite right.")
+       if rightObstacle == '1':    #no obstacle is to the right of the robot. Turn right and go straight
+            self.change_orientation('r')
+            self.current_node += self.increment_node()
+            self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
+            return 10               
+       elif middleObstacle == '1':#no obstacle is in front of the robot. go straight
+            self.current_node += self.increment_node()
+            self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
+            return 0                
+       elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
+            self.change_orientation('l') 
+            self.current_node += self.increment_node()
+            self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
+            return 1
+       else:
+            print ("not quite right.")
             
-       elif rowType == 'o':
-            if leftObstacle == '1':
-                print ("turning left")
-                self.change_orientation('a') #no obstacle is to the left of the robot. Turn left and go straight
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 1
-            elif middleObstacle == '1':#no obstacle is in front of the robot. go straight
-                print ("going straight")
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 0
-            elif rightObstacle == '1':#no obstacle is to the right of the robot. Turn right and go straight
-                self.change_orientation('r')
-                self.current_node += self.increment_node()
-                self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
-                return 10
-            
-            return direction
 
 #checks to see if the robot is at the end of the perimeter search. will eventually need to check to see if
 #there is an object left behind the robot
