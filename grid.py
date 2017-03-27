@@ -28,17 +28,19 @@ class ObstacleNode:
 #container object that holds array of obstacle nodes
 class Grid(object):
     def __init__(self, number_of_nodes):
-        self.current_node = 1
-        self.is_searching = False
-        self.is_grid_search = False
-        self.current_side = 's'             # always starts in the A7 corner
         self.number_of_nodes = number_of_nodes
+        self.current_node = 1
+        self.next_node = 2
+        self.previous_node = 1
+        self.current_side = 's'             # always starts at A7, the bottom left corner
         self.orientation = 'e'              # always starts facing east.
         self.grid = []
-        self.avoidingObstacle = False       # ObstacleDetected
-        self.obstacleDetected = False       #
-        self.obstacleDirection = 0          # direction of obstacle sensor.
-        self.obstacleRange = 0              # how many squeares away.
+        self.is_searching = False
+        self.is_grid_search = False
+        self.avoidingObstacle = False       # Obstacle is in path.
+        self.obstacleDetected = False       # Obstacle Detected
+        self.obstacleDirection = 0          # Direction of obstacle sensor.
+        self.obstacleRange = 0              # How many squeares away is the obstacle.
         
         for i in range(number_of_nodes + 1):# Number of nodes will be 50?
             self.grid.append(ObstacleNode(i))
@@ -55,24 +57,25 @@ class Grid(object):
     #initialize grid values
     def initialize(self):
         self.orientation = 'e'
+        # set corner flags.
         self[1].is_corner = True
         self[7].is_corner = True
         self[43].is_corner = True
         self[49].is_corner = True
+        # set home flag.
         self[1].home = True
         
+        #initialize row and column numbers
         for i in range(self.number_of_nodes + 1):
-            #initialize row and column numbers
             self.grid[i].col_number = (i - 1)%7 + 1
             self.grid[i].row_number = math.floor((i - 1) / 7 + 1)
-            #add perimeter flags and corner flags.
+            #add perimeter flags # and corner flags. removed corner flags.
             if i%7 == 0 or i%7 == 1 or i > 42 or i < 8:
                 self.grid[i].is_perimeter = True
                 self.grid[i].cache_present = 1
-                
-            if i == 1 or i == 7 or i == 43 or i == 49:
-                self.grid[i].is_corner = True
-                self.grid[i].cache_present = 0
+            #if i == 1 or i == 7 or i == 43 or i == 49:
+            #    self.grid[i].is_corner = True
+            #    self.grid[i].cache_present = 0
                 
     def update_node(self, is_tunnel):
         self.grid[self.current_node].is_tunnel = is_tunnel
@@ -90,25 +93,7 @@ class Grid(object):
     # 9 180 degree turn
     # 10 turn right, go straight
 
-    # Perimeter search routine
-    def next_node_perim(self):
-        # At A corner
-        if self.grid[self.current_node].is_corner == True:
-            self.current_node = self.current_node + self.increment_node()
-            self.orientation = self.change_orientation('l')
-            turn_type = 8 #turn left and update orientation
-        elif self.current_node == 15:            
-            turn_type = 8 #turn left and update orientation
-            self.is_searching = False
-            self.current_node = self.current_node + self.increment_node()
-            self.orientation = self.change_orientation('l')
-        else:
-            turn_type = 0   #go straight 1
-            self.current_node = self.current_node + self.increment_node()
-        print ("current node is: ", self.current_node, " Turn type", turn_type, "Next node is: " grid.next_node )
-        return turn_type
-
-    # increments node. 
+    # Calculates ammount to increment node based on orientatin. 
     def increment_node(self):
         if self.orientation == 's':
             increment = int(-7)
@@ -122,6 +107,30 @@ class Grid(object):
             increment = int(0)
             print ("error here. current orientation is: ", self.orientation)
         return increment
+    
+    # Perimeter search routine
+    def next_node_perim(self):
+        # At A corner
+        # test if node has been searched.
+        # drive straight in not on corner.
+        while (self.current_node.node_traversed  == False):
+            self.previous_node = self.current_node
+            if self.grid[self.current_node].is_corner == True:
+                self.orientation = self.change_orientation('l')
+                self.current_node = self.current_node + self.increment_node()
+                turn_type = 8 #turn left and update orientation
+            elif self.current_node == 1:            
+                turn_type = 8 #turn left and update orientation
+                self.is_searching = False
+                self.orientation = self.change_orientation('l')
+                self.current_node = self.current_node + self.increment_node()
+            else:
+                self.current_node = self.current_node + self.increment_node()
+                turn_type = 0   #go straight 1 square
+            print ("current node is: ", self.previous_node, " Turn type", turn_type, "Next node is: ", self.current_node )
+            return turn_type
+
+
 
 #code for changing the robot's internal oriention whenever it turns
     def change_orientation(self, turnDirection):
@@ -174,6 +183,7 @@ class Grid(object):
         if self.current_node == 41:
             self.is_searching = False
             turnType = 4
+            self.next_node = self.current_node + self.increment_node()
         elif (self.grid[self.current_node + 1].is_perimeter == True and self.orientation == 'e') or (self.grid[self.current_node ].col_number == 7 and self.orientation == 'n'):
             self.current_node += self.increment_node()
             self.orientation = self.change_orientation('l')
@@ -224,7 +234,7 @@ class Grid(object):
             self.current_node += self.increment_node()
             self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
             return 0                
-       elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
+       elif leftObstacle == '1':    #no obstacle is to the left of the robot. Turn left and go straight
             self.change_orientation('l') 
             self.current_node += self.increment_node()
             self.isEnd(startRow, startNode, rightObstacle, middleObstacle, leftObstacle)
@@ -232,23 +242,32 @@ class Grid(object):
        else:
             print ("not quite right.")
             
-
-   def obstacleDetected(self, sensorValue, sensorRange):
-        rightObstacle = sensorValue[1]
+    def obstacleDetected(self, sensorValue, sensorRange):
+        # modified to allow input of range distance value.  range is in grid blocks, ie 12" increments.
+        # consider replacing value as boolean with single range.  if range == 0, no obstacle detected.
+        
+        rightObstacle   = sensorValue[1]
         forwardObstacle = sensorValue[2]
-        leftObstacle = sensorValue[3]
-        #   direction = 'z'#get rid of this code later!
-               
-        if rightObstacle == '1':    #no obstacle is to the right of the robot. Turn right and go straight
+        leftObstacle    = sensorValue[3]
+        #obstacle is to the right of the robot.
+        if rightObstacle == '1':        
             self.change_orientation('r')
-            self.grid[self.current_node += self.increment_node() * sensorRange].is_obstruction = True
-        elif forwardObstacle == '1':#no obstacle is in front of the robot. go straight
-            self.grid[self.current_node += self.increment_node() * sensorRange].is_obstruction = True
-        elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
+            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+            self.grid[obstacle_node].is_obstacle = True
+            print ("Obstacles detected to right at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
+        #obstacle is in front of the robot.
+        elif forwardObstacle == '1':    
+            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+            self.grid[obstacle_node].is_obstacle = True
+            print ("Obstacles detected to left at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
+        #obstacle is to the left of the robot.
+        elif leftObstacle == '1':
             self.change_orientation('l')
-            self.grid[self.current_node += self.increment_node() * sensorRange].is_obstruction = True
+            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+            self.grid[obstacle_node].is_obstacle = True
+            print ("Obstacles detected ahead at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
         else:
-            print ("pinned in.  must back up.")
+            print ("No obstacles detected.")
 
 
     def obstacleAvoidance(self, startRow, sensorValue, sensorRange, startNode):
@@ -263,6 +282,9 @@ class Grid(object):
         #continue with move
         
         rightNode = self.current_node += self.increment_node()  self.change_orientation('r')
+
+        self.grid[self.current_node += self.increment_node() * sensorRange].is_obstruction
+
         forwardNode = self.change_orientation('r')
         leftNode = self.change_orientation('r')
         
@@ -299,9 +321,56 @@ class Grid(object):
 
     # Verify robot returned home,  ie node 1.            
     def isHome(self)     
-        if self[self.current_node].node_number == 1
+        if self[self.current_node].node_number == 1:
             print("Search Complete.  Robot returned home.")
-        else
+        else:
             print("do you have directions?")
-
+            self.go_Home
         
+    # Return to start routine
+    def go_Home(self):
+        # find current node.  Check for obstructions between here and home. **obstructions are checked in move? I hope. Jeremy
+        # go home.
+
+        #self.current_node % 7
+        #for i=1:7:
+        #self.grid[self.grid[i].col_number + = self.grid[i].row_number * 7]
+
+        while (self.current_node != 1):  #(self.current_node.home == False):
+            self.previous_node = self.current_node
+            # South first
+            if (self.current_node / 7 > 1): 
+                if (self.orientation =='w'):
+                    self.change_orientation('l')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 8 #turn left
+                elif (self.orientation =='e'):
+                    self.change_orientation('r')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 7 #turn right
+                elif (self.orientation =='n'):
+                    self.change_orientation('t')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 9 # u- turn
+                else:           #must be facing south already
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 0 # forward
+            # then West
+            if (self.current_node % 7 > 1): 
+                if (self.orientation =='n'):
+                    self.change_orientation('l')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 8 #turn left
+                elif (self.orientation =='s'):
+                    self.change_orientation('r')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 7 #turn right
+                elif (self.orientation =='e'):
+                    self.change_orientation('t')
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 9 # u- turn
+                else:           #must be facing west already
+                    self.current_node = self.current_node + self.increment_node()
+                    turn_type = 0 # forward
+            if (self.current_node.home ==true): print("***   We are Home!   ***")
+            return turn_type
