@@ -22,7 +22,7 @@ import os
 import math
 
 number_of_nodes = 49
-course_nodes = grid.Grid(number_of_nodes)
+course_nodes = grid.Grid()
 heading = 0 # init global heading variable.
 
 #motor control
@@ -36,7 +36,7 @@ motor = MotorControls(left_motor, right_motor)
 
 #rotationMotorTest.MotorControls.__init__
 
-ser = serial.Serial('/dev/ttyAMA0',9600, timeout = 2)  #use with arduino uno
+ser = serial.Serial('/dev/ttyACM1',9600, timeout = 2)  #use with arduino uno
 
 # Buttons & Functions ****************************************************
 
@@ -246,13 +246,27 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
     elif actionCode == 'h':
         send += '\n'
         ser.write(send)
-        heading=ser.read()
-        heading=int(heading)
+        #heading=ser.read(3)
+        
+        #heading=int(heading)
         #heading1 = ser.read()
         #heading2 = ser.read()
         #heading3 = ser.read()
         #readHeading = heading1*100 + heading2*10 + heading3
-        return readHeading
+
+        # Test
+        if ser.readline() > 0:
+            value1 = ser.read()
+            value2 = ser.read()
+            value3 = ser.read()              
+            #waitForSerial()
+            #values = ser.read()
+            #ser.flush()
+            #print ("values: ", values)
+            print("value1 - if", value1)
+            print("value2 - if", value2)
+            print("value3 - if", value3)
+        return True #heading
     else:
         send = actionCode
         send += actionCode
@@ -356,7 +370,7 @@ def go_left():
 #********************************************************
 def main():
      number_of_nodes = 49
-     course_nodes = grid.Grid(number_of_nodes)
+     course_nodes = grid.Grid()
      #heading=sendAndReceiveValue('h','z','z')
      #print(heading)
      #time.sleep(4)
@@ -379,40 +393,54 @@ def main():
 #while True:
 #    time.sleep(.2) 
 
-#time.sleep(10)
+time.sleep(1)
 
 
 while True:
-    ser.write('hzz')
-    heading=ser.read()
-    heading=int(heading)
-#    go_right()
-#    heading=sendAndReceiveValue('h','z','z')
+    heading=sendAndReceiveValue('h','z','z')
+    #if ser.readline() > 0:
+    value1 = ser.read()
+    value2 = ser.read()
+    value3 = ser.read()
+    #waitForSerial()
+    #values = ser.read()
+    #ser.flush()
+    #print ("values: ", values)
+    print("value1", value1)
+    print("value2", value2)
+    print("value3", value3)
+    #return True #headig
+
+    ##    ser.write('hzz')
+    ##    heading=int(ser.read(3))
+       
+    #    go_right()
+    heading=sendAndReceiveValue('h','z','z')
     print("heading ", heading)
-#    motor.movement(2,-2,64,64)
-#    updated_heading=sendAndReceiveValue('h','z','z')
-#    print("updated_heading ", updated_heading)
-#    motor.fwd
+    #    motor.movement(2,-2,64,64)
+    updated_heading=sendAndReceiveValue('h','z','z')
+    print("updated_heading ", updated_heading)
+    #    motor.fwd
 
 
-#    heading=sendAndReceiveValue('h','z','z')
-#    if heading > 180:
-#        initial_heading = heading - 360;
-#    else:
-#        initial_heading = heading;
-#    print(initial_heading)
+    heading=sendAndReceiveValue('h','z','z')
+    if heading > 180:
+        initial_heading = heading - 360;
+    else:
+        initial_heading = heading;
+    print(initial_heading)
 
 #    motor.movement(90,-90,64,64)
 
-#    heading=sendAndReceiveValue('h','z','z')
-#    if heading > 180:
-#      updated_heading = heading - 360;
-#    else:
-#      updated_heading = heading;
-#    print(updated_heading)
+    heading=sendAndReceiveValue('h','z','z')
+    if heading > 180:
+      updated_heading = heading - 360;
+    else:
+      updated_heading = heading;
+    print(updated_heading)
 
-#    delta_heading = updated_heading - initial_heading;
-#    print(delta_heading)
+    delta_heading = updated_heading - initial_heading;
+    print(delta_heading)
 
     time.sleep(2)
     

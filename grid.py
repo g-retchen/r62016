@@ -15,34 +15,34 @@ class ObstacleNode:
         self.is_perimeter = False
         self.is_tunnel = False
         self.cache_present = False
-        slef.is_obstacle =False
+        self.is_obstacle =False
         self.die_value = 0
         self.row_number = 1
         self.col_number = 1
         #self.before_corner = False
-        self.traversed = False      #change to node_searched.
+        self.node_traversed = False      #change to node_searched.
         self.node_type = '*'      #saves whether node is tunnel, obstacle, deadend, or no tunnel
                             #'u' for unknown, 't' for tunnel, 'd' for deadend, 'n' for no tunnel
 
 
 #container object that holds array of obstacle nodes
 class Grid(object):
-    def __init__(self, number_of_nodes):
-        self.number_of_nodes = number_of_nodes
+    def __init__(self):
+        self.number_of_nodes = 49
         self.current_node = 1
         self.next_node = 2
         self.previous_node = 1
         self.current_side = 's'             # always starts at A7, the bottom left corner
         self.orientation = 'e'              # always starts facing east.
         self.grid = []
-        self.is_searching = False
-        self.is_grid_search = False
-        self.avoidingObstacle = False       # Obstacle is in path.
+        self.is_searching = False           # searching main grid.
+        self.is_grid_search = False         # 
+        self.avoidingObstacle = False       # Obstacle avoidance in progress.
         self.obstacleDetected = False       # Obstacle Detected
         self.obstacleDirection = 0          # Direction of obstacle sensor.
         self.obstacleRange = 0              # How many squeares away is the obstacle.
         
-        for i in range(number_of_nodes + 1):# Number of nodes will be 50?
+        for i in range(self.number_of_nodes + 1):# Number of nodes will be 50?
             self.grid.append(ObstacleNode(i))
 
     def __getitem__(self,index):
@@ -269,43 +269,65 @@ class Grid(object):
         else:
             print ("No obstacles detected.")
 
-
-    def obstacleAvoidance(self, startRow, sensorValue, sensorRange, startNode):
-        rightObstacle = sensorValue[1]
-        forwardObstacle = sensorValue[2]
-        leftObstacle = sensorValue[3]
-        #   direction = 'z'#get rid of this code later!
-        #
-        #read current orientatation
-        #read next node.
-        #check if next node has obstruction bit set.
-        #continue with move
-        
-        rightNode = self.current_node += self.increment_node()  self.change_orientation('r')
-
-        self.grid[self.current_node += self.increment_node() * sensorRange].is_obstruction
-
-        forwardNode = self.change_orientation('r')
-        leftNode = self.change_orientation('r')
-        
-
-
-        if self.current_node += self.increment_node() == '1':    #no obstacle is to the right of the robot. Turn right and go straight
-            self.change_orientation('r')
-            self.current_node += self.increment_node()
-            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
-            return 10               
-        elif forwardObstacle == '1':#no obstacle is in front of the robot. go straight
-            self.current_node += self.increment_node() * 
-            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
-            return 0                
-        elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
-            self.change_orientation('l') 
-            self.current_node += self.increment_node()
-            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
-            return 1
-        else:
-            print ("pinned in.  must back up.")
+##
+##    def obstacleAvoidance(self, startRow, sensorValue, sensorRange, startNode):
+##        rightObstacle   = sensorValue[1]
+##        forwardObstacle = sensorValue[2]
+##        leftObstacle    = sensorValue[3]
+##        #read current orientatation
+##        #read next node.
+##        #check if next node has obstruction bit set.
+##        #continue with move
+##        if (self.grid[self.current_node + self.increment_node() * sensorRange].is_obstruction == True):
+##            self.avoidingObstacle = True    
+##
+##
+##        next_node.obstacle==True
+##        rightNode = self.current_node + self.increment_node()  self.change_orientation('r')
+##
+##        self.grid[self.current_node + self.increment_node() * sensorRange].is_obstruction
+##
+##        forwardNode = self.change_orientation('r')
+##        leftNode = self.change_orientation('r')
+##        
+##
+##        if rightObstacle == '1':        
+##            self.change_orientation('r')
+##            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+##            self.grid[obstacle_node].is_obstacle = True
+##            print ("Obstacles detected to right at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
+##        #obstacle is in front of the robot.
+##        elif forwardObstacle == '1':    
+##            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+##            self.grid[obstacle_node].is_obstacle = True
+##            print ("Obstacles detected to left at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
+##        #obstacle is to the left of the robot.
+##        elif leftObstacle == '1':
+##            self.change_orientation('l')
+##            obstacle_node = self.grid[(self.current_node + self.increment_node() * sensorRange)]
+##            self.grid[obstacle_node].is_obstacle = True
+##            print ("Obstacles detected ahead at node :", self.grid[(self.current_node + self.increment_node() * sensorRange)])
+##        else:
+##            print ("No obstacles detected.")
+##
+##
+##
+##        if self.current_node += self.increment_node() == '1':    #no obstacle is to the right of the robot. Turn right and go straight
+##            self.change_orientation('r')
+##            self.current_node += self.increment_node()
+##            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
+##            return 10               
+##        elif forwardObstacle == '1':#no obstacle is in front of the robot. go straight
+##            self.current_node += self.increment_node() * 
+##            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
+##            return 0                
+##        elif leftObstacle == '1':#no obstacle is to the left of the robot. Turn left and go straight
+##            self.change_orientation('l') 
+##            self.current_node += self.increment_node()
+##            self.isEnd(startRow, startNode, rightObstacle, forwardObstacle, leftObstacle)
+##            return 1
+##        else:
+##            print ("pinned in.  must back up.")
             
 
 #checks to see if the robot is at the end of the perimeter search. will eventually need to check to see if
@@ -319,8 +341,10 @@ class Grid(object):
         else:
             self.avoidingObstacle = True
 
+
+
     # Verify robot returned home,  ie node 1.            
-    def isHome(self)     
+    def isHome(self):     
         if self[self.current_node].node_number == 1:
             print("Search Complete.  Robot returned home.")
         else:
