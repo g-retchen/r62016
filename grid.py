@@ -19,9 +19,10 @@ class ObstacleNode:
         self.die_value = 0
         self.row_number = 1
         self.col_number = 1
-        #self.before_corner = False
+        #self.before_corner = False      #removed before corner function.
         self.node_traversed = False      #change to node_searched.
-        self.node_type = '*'      #saves whether node is tunnel, obstacle, deadend, or no tunnel
+        self.node_type = '*'
+        #saves whether node is tunnel, obstacle, deadend, or no tunnel
                             #'u' for unknown, 't' for tunnel, 'd' for deadend, 'n' for no tunnel
 
 
@@ -56,7 +57,9 @@ class Grid(object):
 
     #initialize grid values
     def initialize(self):
+        #always inits facing east.
         self.orientation = 'e'
+
         # set corner flags.
         self[1].is_corner = True
         self[7].is_corner = True
