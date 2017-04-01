@@ -1,0 +1,8 @@
+BrickPi.py
+ir_receiver_check.py
+setup.py
+BrickPi.egg-info/PKG-INFO
+BrickPi.egg-info/SOURCES.txt
+BrickPi.egg-info/dependency_links.txt
+BrickPi.egg-info/requires.txt
+BrickPi.egg-info/top_level.txt
