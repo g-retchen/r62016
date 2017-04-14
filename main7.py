@@ -109,6 +109,7 @@ def PerimeterSearch(course_nodes):
             inp = '.'       # at a corner. Turn Left.
         motor.move_bot(inp)  # Send command to move the bot
         #time.sleep(1)
+
          
 # Grid Search **********************************************************
 def GridSearch(course_nodes):
@@ -278,93 +279,93 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
 
 # IMU functions  ********************************************************
 
-    def get_initial_heading():
-        heading=sendAndReceiveValue('h','z','z')
-        if heading > 180:
-            initial_heading = heading - 360;
-        else:
-            initial_heading = heading;
-        return initial_heading
+def get_initial_heading():
+    heading=sendAndReceiveValue('h','z','z')
+    if heading > 180:
+        initial_heading = heading - 360;
+    else:
+        initial_heading = heading;
+    return initial_heading
 
-    def get_updated_heading():
-        heading=sendAndReceiveValue('h','z','z')
-        if heading > 180:
-          updated_heading = heading - 360;
-        else:
-          updated_heading = heading;
-        return updated_heading
+def get_updated_heading():
+    heading=sendAndReceiveValue('h','z','z')
+    if heading > 180:
+      updated_heading = heading - 360;
+    else:
+      updated_heading = heading;
+    return updated_heading
 
-    def get_delta_heading(initial_heading,updated_heading):
-        delta_heading = updated_heading - initial_heading;
-        return delta_heading
+def get_delta_heading(initial_heading,updated_heading):
+    delta_heading = updated_heading - initial_heading;
+    return delta_heading
 
 # Straight move********************************************************
-    def go_forward():
-        upper_limit = 5;
-        lower_limit = -5;
-        get_initial_heading()
-        self.fwd()
-        get_updated_heading()
-        get_delta_heading()
-        # correct rightward heading
-        if delta_heading > upper_limit:
-            while delta_heading > upper_limit:
-                # turn left
-                motor.movement(-1,1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-                # initial heading before enters function, reference initial heading
-        # correct leftward heading
-        if delta_heading < lower_limit:
-            while heading_delta < lower_limit:
-                # turn right
-                motor.movement(1,-1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-                # initial heading before enters function, reference initial heading
-        return
+def go_forward():
+    upper_limit = 5;
+    lower_limit = -5;
+    get_initial_heading()
+    self.fwd()
+    get_updated_heading()
+    get_delta_heading()
+    # correct rightward heading
+    if delta_heading > upper_limit:
+        while delta_heading > upper_limit:
+            # turn left
+            motor.movement(-1,1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+            # initial heading before enters function, reference initial heading
+    # correct leftward heading
+    if delta_heading < lower_limit:
+        while heading_delta < lower_limit:
+            # turn right
+            motor.movement(1,-1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+            # initial heading before enters function, reference initial heading
+    return
 
 # Right Turn********************************************************
-    def go_right():
-        # correct heading while turning right
-        upper_limit = 95;
-        lower_limit = 85;
-        get_initial_heading()
-        self.right()
-        get_updated_heading()
-        get_delta_heading()
+def go_right():
+    # correct heading while turning right
+    upper_limit = 95;
+    lower_limit = 85;
+    get_initial_heading()
+    self.right()
+    get_updated_heading()
+    get_delta_heading()
 
-        # correct overturn
-        if delta_heading > upper_limit:
-            while delta_heading > upper_limit:
-                motor.movement(-1,1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-        #correct underturn
-        if delta_heading < lower_limit:
-            while delta_heading < lower_limit:
-                motor.movement(1,-1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-        return
+    # correct overturn
+    if delta_heading > upper_limit:
+        while delta_heading > upper_limit:
+            motor.movement(-1,1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+    #correct underturn
+    if delta_heading < lower_limit:
+        while delta_heading < lower_limit:
+            motor.movement(1,-1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+    return
 
 # Left Turn********************************************************
-    def go_left():
-        # correct heading while turning right
-        upper_limit = -95;
-        lower_limit = -85;
-        get_initial_heading()
-        self.left()
-        get_updated_heading()
-        get_delta_heading()
-        
-        # correct overturn
-        if delta_heading > upper_limit:
-            while delta_heading > upper_limit:
-                motor.movement(1,-1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-        #correct underturn
-        if delta_heading < lower_limit:
-            while delta_heading < lower_limit:
-                motor.movement(-1,1,100,100)
-                delta_heading = get_delta_heading(initial_heading,updated_heading);
-        return
+def go_left():
+    # correct heading while turning right
+    upper_limit = -95;
+    lower_limit = -85;
+    get_initial_heading()
+    self.left()
+    get_updated_heading()
+    get_delta_heading()
+    
+    # correct overturn
+    if delta_heading > upper_limit:
+        while delta_heading > upper_limit:
+            motor.movement(1,-1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+    #correct underturn
+    if delta_heading < lower_limit:
+        while delta_heading < lower_limit:
+            motor.movement(-1,1,100,100)
+            delta_heading = get_delta_heading(initial_heading,updated_heading);
+    return
 
 
 # MAIN PROGRAM
@@ -394,8 +395,40 @@ def main():
 #while True:
 #    time.sleep(.2) 
 
-time.sleep(10)
+#time.sleep(10)
 
+
+while True:
+    go_right()
+#    heading=sendAndReceiveValue('h','z','z')
+#    print("heading ", heading)
+#    motor.movement(2,-2,64,64)
+#    updated_heading=sendAndReceiveValue('h','z','z')
+#    print("updated_heading ", updated_heading)
+#    motor.fwd
+
+
+#    heading=sendAndReceiveValue('h','z','z')
+#    if heading > 180:
+#        initial_heading = heading - 360;
+#    else:
+#        initial_heading = heading;
+#    print(initial_heading)
+
+    motor.movement(90,-90,64,64)
+
+#    heading=sendAndReceiveValue('h','z','z')
+#    if heading > 180:
+#      updated_heading = heading - 360;
+#    else:
+#      updated_heading = heading;
+#    print(updated_heading)
+
+#    delta_heading = updated_heading - initial_heading;
+#    print(delta_heading)
+
+    time.sleep(2)
+    
 if __name__ == "__main__":
     try:
         main()

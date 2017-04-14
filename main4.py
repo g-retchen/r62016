@@ -13,7 +13,7 @@ import os
 import math
 
 number_of_nodes = 49
-course_nodes = grid.Grid(number_of_nodes)
+course_nodes = grid.Grid()
 
 #motor control
 from BrickPi import *  # import BrickPi.py file to use BrickPi operations
@@ -367,12 +367,13 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
            heading2 = ser.read()
            heading3 = ser.read()
            heading = value1*100 + values*10 + value3
+           return heading
     else:
            send = actionCode
            send += actionCode
 
     #print (send)
-    return heading
+    
 
 def get_initial_heading(heading):
    if heading > 180:

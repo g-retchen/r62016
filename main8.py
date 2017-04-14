@@ -36,65 +36,67 @@ motor = MotorControls(left_motor, right_motor)
 
 #rotationMotorTest.MotorControls.__init__
 
-ser = serial.Serial('/dev/ttyACM1',9600, timeout = 2)  #use with arduino uno
+# serial init
+ser = serial.Serial('/dev/ttyACM0',9600, timeout = 2)  #use with arduino uno
 
-# Buttons & Functions ****************************************************
 
-# GREEN
-def system_action(STARTBUTTON):
-    print("Start Button press detected.")
-    StartMain()
-
-# RED
-def system_action(STOPBUTTON):
-    print("Stop Button press detected.")
-    button_press_timer=0
-    while True:
-        if (GPIO.input(STOPBUTTON) == False) : # while button is still pressed down
-            button_press_timer += 1 # keep counting until button is released
-        else: # button is released, figure out for how long
-            if (button_press_timer > 7) : # pressed for > 7 seconds
-                print ("long press > 7 : ", button_press_timer)
-                Shutdown()
-            elif (button_press_timer > 3) : # press for > 3 < 5 seconds
-                print ("short press > 3 < 5 : ", button_press_timer)
-                Reboot()
-            elif (button_press_timer > 1) : # press for > 1 < 3 seconds
-                print ("short press > 1 < 3 : ", button_press_timer)
-                HaltRobot()
-        button_press_timer = 0
-
-STOPBUTTON = 04
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(04, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(STOPBUTTON, GPIO.FALLING, bouncetime = 400)
-STARTBUTTON = 21
-GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(STARTBUTTON, GPIO.FALLING, bouncetime = 400)
-         
-
-def HaltRobot(channel):
-    print ("HaltRobot button test confirmed")
-    motor.move_bot('s')  # Send command to stop the bot
-#     os.system.KeyboardInterrupt  #shuts down entire operating system
-  
-def Shutdown(channel):
-    print ("Shutdown button test confirmed")
-    motor.move_bot('s')  # Send command to stop the bot
-    GPIO.cleanup()
-    os.system("sudo shutdown -h now")  #shuts down entire operating system
-
-def Reboot(channel):
-    print ("Reboot button test confirmed")
-    motor.move_bot('s')  # Send command to stop the bot
-    GPIO.cleanup()
-    os.system("sudo reboot")  #shuts down entire operating system
-
-def StartMain(channel):
-    print ("Start button pressed")
-    motor.move_bot('s')  # Send command to stop the bot
-    main()
-      
+## added to seperate functions.
+### Buttons & Functions ****************************************************
+### GREEN
+##def system_action(STARTBUTTON):
+##    print("Start Button press detected.")
+##    StartMain()
+##
+### RED
+##def system_action(STOPBUTTON):
+##    print("Stop Button press detected.")
+##    button_press_timer=0
+##    while True:
+##        if (GPIO.input(STOPBUTTON) == False) : # while button is still pressed down
+##            button_press_timer += 1 # keep counting until button is released
+##        else: # button is released, figure out for how long
+##            if (button_press_timer > 7) : # pressed for > 7 seconds
+##                print ("long press > 7 : ", button_press_timer)
+##                Shutdown()
+##            elif (button_press_timer > 3) : # press for > 3 < 5 seconds
+##                print ("short press > 3 < 5 : ", button_press_timer)
+##                Reboot()
+##            elif (button_press_timer > 1) : # press for > 1 < 3 seconds
+##                print ("short press > 1 < 3 : ", button_press_timer)
+##                HaltRobot()
+##        button_press_timer = 0
+##
+##STOPBUTTON = 07 #04
+##GPIO.setmode(GPIO.BCM)
+##GPIO.setup(07, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+##GPIO.add_event_detect(STOPBUTTON, GPIO.FALLING, bouncetime = 400)
+##STARTBUTTON = 40 #21
+##GPIO.setup(40, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+##GPIO.add_event_detect(STARTBUTTON, GPIO.FALLING, bouncetime = 400)
+##         
+##
+##def HaltRobot(channel):
+##    print ("HaltRobot button test confirmed")
+##    motor.move_bot('s')  # Send command to stop the bot
+###     os.system.KeyboardInterrupt  #shuts down entire operating system
+##  
+##def Shutdown(channel):
+##    print ("Shutdown button test confirmed")
+##    motor.move_bot('s')  # Send command to stop the bot
+##    GPIO.cleanup()
+##    os.system("sudo shutdown -h now")  #shuts down entire operating system
+##
+##def Reboot(channel):
+##    print ("Reboot button test confirmed")
+##    motor.move_bot('s')  # Send command to stop the bot
+##    GPIO.cleanup()
+##    os.system("sudo reboot")  #shuts down entire operating system
+##
+##def StartMain(channel):
+##    print ("Start button pressed")
+##    motor.move_bot('s')  # Send command to stop the bot
+##    main()
+##      
 
 # Perimeter Search **************************************************
 def PerimeterSearch(course_nodes):
@@ -249,11 +251,12 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
         #heading=ser.read(3)
         
         #heading=int(heading)
-        #heading1 = ser.read()
-        #heading2 = ser.read()
-        #heading3 = ser.read()
-        #readHeading = heading1*100 + heading2*10 + heading3
-
+        heading1 = ser.read()
+        heading2 = ser.read()
+        heading3 = ser.read()
+        readHeading = heading1*100 + heading2*10 + heading3
+        print(readHeading)
+        print("")
         # Test
         if ser.readline() > 0:
             value1 = ser.read()
@@ -277,7 +280,8 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
 
 def get_initial_heading():
     heading=sendAndReceiveValue('h','z','z')
-    heading=int(heading)
+    heading=int(heading) 
+    print(heading)  # added print for testing
     if heading > 180:
         initial_heading = heading - 360;
     else:
@@ -397,30 +401,32 @@ time.sleep(1)
 
 
 while True:
-    heading=sendAndReceiveValue('h','z','z')
-    #if ser.readline() > 0:
-    value1 = ser.read()
-    value2 = ser.read()
-    value3 = ser.read()
-    #waitForSerial()
-    #values = ser.read()
-    #ser.flush()
-    #print ("values: ", values)
-    print("value1", value1)
-    print("value2", value2)
-    print("value3", value3)
-    #return True #headig
 
-    ##    ser.write('hzz')
-    ##    heading=int(ser.read(3))
-       
-    #    go_right()
-    heading=sendAndReceiveValue('h','z','z')
-    print("heading ", heading)
-    #    motor.movement(2,-2,64,64)
-    updated_heading=sendAndReceiveValue('h','z','z')
-    print("updated_heading ", updated_heading)
-    #    motor.fwd
+    get_updated_heading()
+##    heading=sendAndReceiveValue('h','z','z')
+##    #if ser.readline() > 0:
+##    value1 = ser.read()
+##    value2 = ser.read()
+##    value3 = ser.read()
+##    #waitForSerial()
+##    #values = ser.read()
+##    #ser.flush()
+##    #print ("values: ", values)
+##    print("value1", value1)
+##    print("value2", value2)
+##    print("value3", value3)
+##    #return True #headig
+##
+##    ##    ser.write('hzz')
+##    ##    heading=int(ser.read(3))
+##       
+##    #    go_right()
+##    heading=sendAndReceiveValue('h','z','z')
+##    print("heading ", heading)
+##    #    motor.movement(2,-2,64,64)
+##    updated_heading=sendAndReceiveValue('h','z','z')
+##    print("updated_heading ", updated_heading)
+##    #    motor.fwd
 
 
     heading=sendAndReceiveValue('h','z','z')
