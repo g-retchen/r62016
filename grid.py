@@ -31,10 +31,11 @@ class Grid(object):
     def __init__(self):
         self.number_of_nodes = 49
         self.current_node = 1
-        self.next_node = 2
-        self.previous_node = 1
-        self.current_side = 's'             # always starts at A7, the bottom left corner
+       # self.next_node = 2
+      #  self.previous_node = 1
+       # self.current_side = 's'             # always starts at A7, the bottom left corner
         self.orientation = 'e'              # always starts facing east.
+        self.post_orientation = 'e'
         self.grid = []
         self.is_searching = False           # searching main grid.
         self.is_grid_search = False         # 
@@ -111,28 +112,23 @@ class Grid(object):
             print ("error here. current orientation is: ", self.orientation)
         return increment
     
-    # Perimeter search routine
+    #code for initial perimeter search
     def next_node_perim(self):
-        # At A corner
-        # test if node has been searched.
-        # drive straight in not on corner.
-        while (self.current_node.node_traversed  == False):
-            self.previous_node = self.current_node
-            if self.grid[self.current_node].is_corner == True:
-                self.orientation = self.change_orientation('l')
-                self.current_node = self.current_node + self.increment_node()
-                turn_type = 8 #turn left and update orientation
-            elif self.current_node == 1:            
-                turn_type = 8 #turn left and update orientation
-                self.is_searching = False
-                self.orientation = self.change_orientation('l')
-                self.current_node = self.current_node + self.increment_node()
-            else:
-                self.current_node = self.current_node + self.increment_node()
-                turn_type = 0   #go straight 1 square
-            print ("current node is: ", self.previous_node, " Turn type", turn_type, "Next node is: ", self.current_node )
-            return turn_type
-
+    #we are right before the corner
+        if self.grid[self.current_node + self.increment_node()].is_corner == True:
+            self.current_node = self.current_node + self.increment_node()
+            self.orientation = self.change_orientation('l')
+            turn_type = 6 #go straight 1, then turn left. Make sure to update orientation
+        elif self.current_node == 15:
+            turn_type = 6 #go stright 1, then turn left. Make sure to update orientation
+            self.is_searching = False
+            self.current_node = self.current_node + self.increment_node()
+            self.orientation = self.change_orientation('l')
+        else:
+            turn_type = 0   #go straight 1
+            self.current_node = self.current_node + self.increment_node()
+        print ("current node:", self.current_node, " Turn type", turn_type )
+        return turn_type
 
 
 #code for changing the robot's internal oriention whenever it turns
@@ -181,12 +177,12 @@ class Grid(object):
     # 10 turn right, go straight
 
     #code for grid search
+    #code for grid search
     def next_node_grid(self):
         #if we are at the final node in the search
         if self.current_node == 41:
             self.is_searching = False
             turnType = 4
-            self.next_node = self.current_node + self.increment_node()
         elif (self.grid[self.current_node + 1].is_perimeter == True and self.orientation == 'e') or (self.grid[self.current_node ].col_number == 7 and self.orientation == 'n'):
             self.current_node += self.increment_node()
             self.orientation = self.change_orientation('l')
