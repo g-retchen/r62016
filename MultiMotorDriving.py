@@ -29,7 +29,7 @@ from BrickPi import *  #import BrickPi.py file to use BrickPi operations
 
 global inArray
 
-debug = True
+debug = False
     
 # CALIBRATE THE FOLLOWING ENTRIES FOR YOUR ROBOT 
 #  - These are for my 1 kg robot with 2 driving wheels & a dolly wheel
@@ -121,7 +121,7 @@ def motorRotateDeg (power, deg, port, sampling_time=.01):
 
     currentPower = [0] * numberOfMotors	    #From BrickPi.MotorSpeed
     
-    doingPIC = True ###Tester False
+    doingPIC = False
     delta = 0
     gain = 0.018
     idelta = 0.0
@@ -299,3 +299,4 @@ def motorRotateDeg (power, deg, port, sampling_time=.01):
                         BrickPi.MotorSpeed[port[1]] +=  powerMod #Speed up motor 1
                     else: BrickPi.MotorSpeed[port[1]] = power[1] # (to its max)
                     if debug: print ("   Power modifier: %d, New motor 1 power: %d" % (powerMod, BrickPi.MotorSpeed[port[1]]))   
+

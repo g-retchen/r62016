@@ -46,6 +46,7 @@ class Grid(object):
         
         for i in range(self.number_of_nodes + 1):# Number of nodes will be 50?
             self.grid.append(ObstacleNode(i))
+            self[i].node_type = 'g'    #delete
 
     def __getitem__(self,index):
         return self.grid[index]
@@ -73,13 +74,27 @@ class Grid(object):
         for i in range(self.number_of_nodes + 1):
             self.grid[i].col_number = (i - 1)%7 + 1
             self.grid[i].row_number = math.floor((i - 1) / 7 + 1)
+   
             #add perimeter flags # and corner flags. removed corner flags.
-            if i%7 == 0 or i%7 == 1 or i > 42 or i < 8:
+            if i%7 == 0 or i%7 == 1:# or i > 42 or i < 8:
                 self.grid[i].is_perimeter = True
                 self.grid[i].cache_present = 1
             #if i == 1 or i == 7 or i == 43 or i == 49:
             #    self.grid[i].is_corner = True
             #    self.grid[i].cache_present = 0
+        self[1].node_type = 'y'
+        self[9].node_type = 'b'  #deadend
+        self[10].node_type = 'r'  #tunnel
+        self[11].node_type = 'r'  #
+        self[12].node_type = 'r'  #
+        self[13].node_type = 'r'  #
+        self[14].node_type = 'r'  #
+        self[17].node_type = 'r'  #
+        self[24].node_type = 'r'  #
+        self[31].node_type = 'r'  #
+        self[38].node_type = 'r'  #
+        self[45].node_type = 'r'  #        
+        
                 
     def update_node(self, is_tunnel):
         self.grid[self.current_node].is_tunnel = is_tunnel
@@ -113,22 +128,22 @@ class Grid(object):
         return increment
     
     #code for initial perimeter search
-    def next_node_perim(self):
+  #  def next_node_perim(self):
     #we are right before the corner
-        if self.grid[self.current_node + self.increment_node()].is_corner == True:
-            self.current_node = self.current_node + self.increment_node()
-            self.orientation = self.change_orientation('l')
-            turn_type = 6 #go straight 1, then turn left. Make sure to update orientation
-        elif self.current_node == 15:
-            turn_type = 6 #go stright 1, then turn left. Make sure to update orientation
-            self.is_searching = False
-            self.current_node = self.current_node + self.increment_node()
-            self.orientation = self.change_orientation('l')
-        else:
-            turn_type = 0   #go straight 1
-            self.current_node = self.current_node + self.increment_node()
-        print ("current node:", self.current_node, " Turn type", turn_type )
-        return turn_type
+ #       if self.grid[self.current_node + self.increment_node()].is_corner == True:
+    #        self.current_node = self.current_node + self.increment_node()
+   #         self.orientation = self.change_orientation('l')
+    #        turn_type = 6 #go straight 1, then turn left. Make sure to update orientation
+     #   elif self.current_node == 15:
+      #      turn_type = 6 #go stright 1, then turn left. Make sure to update orientation
+       #     self.is_searching = False
+        #    self.current_node = self.current_node + self.increment_node()
+         #   self.orientation = self.change_orientation('l')
+       # else:
+        #    turn_type = 0   #go straight 1
+         #   self.current_node = self.current_node + self.increment_node()
+       # print ("current node:", self.current_node, " Turn type", turn_type )
+       # return turn_type
 
 
 #code for changing the robot's internal oriention whenever it turns
@@ -164,6 +179,7 @@ class Grid(object):
         return orientation
 
 
+        
     # 0 go straight
     # 1 turn left, go straight
     # 2 turn left, go straight, turn left
@@ -180,7 +196,7 @@ class Grid(object):
     #code for grid search
     def next_node_grid(self):
         #if we are at the final node in the search
-        if self.current_node == 41:
+        if self.current_node == 49:
             self.is_searching = False
             turnType = 4
         elif (self.grid[self.current_node + 1].is_perimeter == True and self.orientation == 'e') or (self.grid[self.current_node ].col_number == 7 and self.orientation == 'n'):

@@ -23,7 +23,7 @@ motor = rotationMotorTest.MotorControls(left_motor, right_motor)
 
 # initialize serial communication
 # ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 2)   #use with redboard
-ser = serial.Serial('/dev/ttyACM0', 9600, timeout=2)  # use with arduino uno
+ser = serial.Serial('/dev/ttyACM1', 9600, timeout=2)  # use with arduino uno
 
 
 # GREEN
@@ -403,23 +403,19 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
         if ser.readline() > 0:
             values = ser.read()
     elif actionCode == 'g':
-        send += '\n'
-        ser.write(send)
-        # ser.flush()
-        if ser.readline() > 0:
-          #  ser.read()
-          #  value1 = ser.readline()
-          #  print(value1)
-            value2 = ser.read()
-            value3 = ser.read()
-            value4 = ser.read()
-         #   print("value1", value1)
-            print("value2", value2)
-            print("value3", value3)
-            print("value4", value4)
-         #   print("value4", ser.read())
-         #   print("value5", ser.read())
-      #      print("value6", ser.read())
+           send += '\n'
+           ser.write(send)
+           ser.flush()
+           if ser.readline() > 0:
+              readValue = ser.readline()
+          #    value2 = ser.read()
+           #   value3 = ser.read()              
+           #waitForSerial()
+             # values = ser.read()
+           ser.flush()
+           value1 = readValue[0]
+           value2 = readValue[1]
+           value3 = readValue[2]
             # waitForSerial()
             # values = ser.read()
             # ser.flush()
@@ -510,9 +506,9 @@ def main():
 
     print ("here")
    # print ("functional")
- #   while True:
-     #   heading = sendAndReceiveValue('g','z','z')
-    #    print (heading)
+    while True:
+        heading = sendAndReceiveValue('d','5','5')
+        print (heading)
   #  turn2('l', course_nodes)
   #  motor.move_bot(4)
 
@@ -520,9 +516,9 @@ def main():
   #  turn('l', course_nodes)
   
 
-    course_nodes.initialize()
-    PerimeterSearch(course_nodes)
-    GridSearch(course_nodes)
+  #  course_nodes.initialize()
+  #  PerimeterSearch(course_nodes)
+    #GridSearch(course_nodes)
   
     #
     completeGrid(course_nodes)

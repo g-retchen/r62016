@@ -42,7 +42,7 @@ class MotorControls:
         BrickPiSetupSensors()  # Send the properties of sensors to BrickPi
         BrickPi.Timeout = 30000  # So motors won't stop cause of lack of contact (30 seconds)
         BrickPiSetTimeout()  # (BrickPi's default is 250 msec (really meeses with motor reliability))
-        self.drivePower = 168  # variable for standard power.
+        self.drivePower = 220  # variable for standard power.
         minMovement = 3  # min correction in degrees.
     #
     def movement(self, i, j, power1, power2):
@@ -54,19 +54,12 @@ class MotorControls:
             print("Encoder Value: " + str(encoderStartLeft) + ' ' + str(encoderStartRight))  # print the encoder raw
             power = [power1, power2]  # 0 to 255
             deg = [i, j]
-            # maxWheelSpeedDiff = motorRotateDegree (power, deg, motors, sampling_time=0.0) #to use BrickPi's version
             maxWheelSpeedDiff = motorRotateDeg(power, deg, self.motors,
                                                sampling_time=0.0)  # to use MultiMotorDriving's super version
             encoderEndLeft = BrickPi.Encoder[self.left_motor]
             encoderEndRight = BrickPi.Encoder[self.right_motor]
             deltaLeft = abs(encoderEndLeft - encoderStartLeft) // 2
             deltaRight = abs(encoderEndRight - encoderStartRight) // 2
-            #       print ("Encoder Value: " + str(encoderEndLeft) + ' ' + str(encoderEndRight))	# print the encoder raw
-            #       print ("Delta Value: %d %d" % (deltaLeft, deltaRight))
-            #       print ("Accuracy: %d %% %d %%" % (deltaLeft * 100 // abs(deg[0]), deltaRight * 100 // abs(deg[1])))
-            #       print ("Max wheel speed differential in encoder tics: %d" % maxWheelSpeedDiff)
-           ## print("=============")
-           # BrickPiSense()
 
 
     def movementWPower(self, power1, power2):
@@ -432,9 +425,9 @@ class MotorControls:
 
 
 #initialize motor
-left_motor = PORT_B
-right_motor = PORT_A
-motor = MotorControls(left_motor, right_motor)
+#left_motor = PORT_B
+#right_motor = PORT_A
+#motor = MotorControls(left_motor, right_motor)
 #move_bot.self('w')
 
 #motor.right()
